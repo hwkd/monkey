@@ -49,7 +49,7 @@ func (l *Lexer) NextToken() token.Token {
 			ch := l.ch
 			l.readChar()
 			literal := string(ch) + string(l.ch)
-			tok = token.Token{Type: token.EQ, Literal: literal}
+      tok = newToken(token.EQ, literal)
 		} else {
 			tok = newToken(token.ASSIGN, l.ch)
 		}
@@ -59,10 +59,10 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.MINUS, l.ch)
 	case '!':
 		if l.peekChar() == '=' {
-      ch := l.ch
-      l.readChar()
-      literal := string(ch) + string(l.ch)
-      tok = token.Token{Type: token.NOT_EQ, Literal: literal}
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+      tok = newToken(token.NOT_EQ, literal)
 		} else {
 			tok = newToken(token.BANG, l.ch)
 		}
@@ -91,13 +91,10 @@ func (l *Lexer) NextToken() token.Token {
 		tok.Type = token.EOF
 	default:
 		if isLetter(l.ch) {
-			tok.Literal = l.readIdentifier()
-			tok.Type = token.LookupIdent(tok.Literal)
-			return tok
+      literal := l.readIdentifier()
+      return newToken(token.LookupIdent(literal), literal)
 		} else if isDigit(l.ch) {
-			tok.Literal = l.readNumber()
-			tok.Type = token.INT
-			return tok
+			return newToken(token.INT, l.readNumber())
 		} else {
 			tok = newToken(token.ILLEGAL, l.ch)
 		}
@@ -138,6 +135,6 @@ func isDigit(ch byte) bool {
 }
 
 // Helper function to create a new token
-func newToken(tokenType token.TokenType, ch byte) token.Token {
-	return token.Token{Type: tokenType, Literal: string(ch)}
+func newToken[Literal byte | string](tokenType token.TokenType, literal Literal) token.Token {
+	return token.Token{Type: tokenType, Literal: string(literal)}
 }
